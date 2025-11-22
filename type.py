@@ -16,7 +16,7 @@ except ImportError:
     has_keyboard = False
 
 # Characters that trigger a longer "sentence end" pause
-sentence_end_characters = {'.', '!', '?', '\n', '。', '！', '？'}
+sentence_end_characters = {'.', '!', '?', '\n', '。', '"', '"'}
 
 
 class TypingSimulator:
@@ -24,6 +24,7 @@ class TypingSimulator:
         self.root = root
         self.root.title("Human Typing Simulator")
 
+        # insilize the status 
         self.typing_thread = None
         self.is_typing = False
         self.paused = False
@@ -114,6 +115,22 @@ class TypingSimulator:
 
         self.status_label = ttk.Label(buttons_frame, text="Status: Waiting", foreground="blue")
         self.status_label.pack(side="left", padx=20)
+
+    def send_notification(self, message):
+        threading.Thread(target=self._send_notification_impl, args=(message,), daemon=True).start()
+
+    def _send_notification_impl(self, message):
+        if hasattr(self, 'use_telegram_var') and HAS_REQUESTS:
+            token = getattr(self, 'token', tk.StringVar()).get().strip()
+            chatid = getattr(self, 'chatid', tk.StringVar()).get().strip()
+            if token and chatid:
+                try:
+                    import requests
+                    url = f""
+                    requests.post(url, data={"chat_id": chatid, "text": message})
+                except Exception:
+                    pass
+
 
     def on_start(self):
         if self.is_typing:
